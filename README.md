@@ -34,6 +34,16 @@ A local web application that uses Google Gemini to turn PDFs into structured lea
    ```
 5. **Open**: Visit `http://localhost:3000`.
 
+### Docker Setup
+
+1. **Prerequisites**: Docker installed.
+2. **Environment**: Ensure `.env` exists with `GEMINI_API_KEY`.
+3. **Run**:
+   ```bash
+   docker-compose up --build
+   ```
+4. **Open**: Visit `http://localhost:3000`.
+
 ## Architecture
 - **Frontend**: Next.js (App Router), Tailwind CSS.
 - **Backend**: Next.js API Routes.
