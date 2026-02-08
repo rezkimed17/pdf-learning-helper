@@ -1,0 +1,81 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Workspace {
+  id              String   @id @default(uuid())
+  filename        String
+  originalName    String
+  fileHash        String   @unique
+  filePath        String
+  status          String   // UPLOADING, PROCESSING, COMPLETED, FAILED
+  processingStage String?
+  progressPercent Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Analysis results
+  moduleCount     Int      @default(0)
+  geminiFileUri   String?
+  geminiModel     String?
+
+  modules         Module[]
+  progressEvents  ProgressEvent[]
+  quizzes         QuizDefinition[]
+}
+
+model Module {
+  id          String   @id @default(uuid())
+  workspaceId String
+  index       Int
+  title       String
+  summary     String
+  keyTerms    String   // JSON string: ["term1", "term2"]
+  citations   String   // JSON string: [1, 5, 12] (page numbers)
+  
+  createdAt   DateTime @default(now())
+  
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  quizzes     QuizDefinition[]
+  
+  @@unique([workspaceId, index])
+}
+
+model ProgressEvent {
+  id          String   @id @default(uuid())
+  workspaceId String
+  stage       String
+  message     String
+  percent     Int      @default(0)
+  timestamp   DateTime @default(now())
+  
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+model QuizDefinition {
+  id          String   @id @default(uuid())
+  workspaceId String
+  moduleId    String
+  createdAt   DateTime @default(now())
+  questions   String   // JSON string of QuizQuestion objects
+  
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  module      Module    @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  attempts    QuizAttempt[]
+}
+
+model QuizAttempt {
+  id               String   @id @default(uuid())
+  quizDefinitionId String
+  score            Int
+  totalQuestions   Int
+  completedAt      DateTime @default(now())
+  answers          String   // JSON string: user answers
+  
+  quizDefinition   QuizDefinition @relation(fields: [quizDefinitionId], references: [id], onDelete: Cascade)
+}
